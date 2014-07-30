@@ -49,10 +49,11 @@ echo ""
 echo -n "Jenkisとその設定を削除しますか?(y/N)"
 read YN
 
-
 if [ "$YN" = "y" ]
 then
-    yum -y remove jenkins
+    if  [ ! -f /etc/debian_version ];then
+        yum -y remove jenkins
+    fi
     rm -fr /var/lib/jenkins
 fi
 
