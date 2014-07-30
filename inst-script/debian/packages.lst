@@ -33,5 +33,6 @@ libapache-dbi-perl
 #gcc
 # for backlogs
 #libnokogiri-ruby
-libical0
+libical[01]
 python-docutils
+ruby-dev
