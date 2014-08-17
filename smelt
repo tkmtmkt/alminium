@@ -178,6 +178,14 @@ case $TYPE in
         ;;
 esac
 
+# update submodules
+if [ $(git config -l | egrep 'submodule.+url=' | wc -l) -ne \
+     $(grep submodule .gitmodules | wc -l) ]
+then
+  git submodule init
+fi
+git submodule sync
+git submodule update
 
 ## install packages
 if [ ! -f packages.installed ]
@@ -185,12 +193,6 @@ then
   echo "*** run pre-install script ***"
   source inst-script/$OS/pre-install
   touch packages.installed
-fi
-
-if [ ! -f theme/railsgun/license.txt ]
-then
-  git submodule init
-  git submodule update
 fi
 
 if [ ! -f gems.installed ]
