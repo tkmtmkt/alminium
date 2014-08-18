@@ -6,7 +6,6 @@ if [ "$GEM" = "" ]
 then
   GEM=gem
 fi
-  
 
 echo "ALMiniumをアンインストールします。"
 echo ""
@@ -26,13 +25,13 @@ read YN
 
 if [ "$YN" = "y" ]
 then
-    rm -fr /etc/apache2/sites-available/vcs
-    rm -fr /etc/apache2/sites-available/redmine
-    rm -fr /etc/apache2/sites-enabled/vcs
-    rm -fr /etc/apache2/sites-enabled/redmine
+    rm -fr /etc/apache2/sites-{available,enabled}/jenkins
+    rm -fr /etc/apache2/sites-{available,enabled}/redmine
+    rm -fr /etc/apache2/sites-{available,enabled}/vcs
+    rm -fr /etc/httpd/conf.d/jenkins.conf
     rm -fr /etc/httpd/conf.d/redmine.conf
     rm -fr /etc/httpd/conf.d/vcs.conf
-    rm -fr /etc/httpd/conf.d/jenkins.conf
+    rm -fr /etc/opt/alminium
 fi
 
 echo ""
@@ -51,8 +50,10 @@ read YN
 
 if [ "$YN" = "y" ]
 then
-    if  [ ! -f /etc/debian_version ];then
+    if [ -f /usr/bin/yum ]; then
         yum -y remove jenkins
+    elif [ -f /usr/bin/apt-get ]; then
+        apt-get -y purge jenkins
     fi
     rm -fr /var/lib/jenkins
 fi
@@ -66,5 +67,3 @@ if [ "$YN" = "y" ]
 then
     rm -fr cache *.installed
 fi
-
-
