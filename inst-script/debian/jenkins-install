@@ -18,11 +18,6 @@ fi
  
 sed -i 's/JENKINS_ARGS="--webroot/JENKINS_ARGS="--prefix=\/jenkins --webroot/' /etc/default/jenkins
 
-if [ ! -f /var/lib/jenkins/config.xml ]
-then
-  cp config/jenkins-config.xml /var/lib/jenkins/config.xml
-fi
-
 if [ ! -f /var/lib/jenkins/plugins ]
 then
   mkdir /var/lib/jenkins/plugins
@@ -79,6 +74,11 @@ java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ ins
 java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ install-plugin dashboard-view
 
 sleep 10
+
+if [ ! -f /var/lib/jenkins/config.xml ]
+then
+  cp config/jenkins-config.xml /var/lib/jenkins/config.xml
+fi
 
 java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ restart
 
