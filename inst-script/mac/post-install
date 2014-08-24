@@ -5,7 +5,7 @@ cp inst-script/mac/scm.yml.mac $INSTALL_DIR/config/scm.yml
 if [ ! -f /opt/local/apache2/Authn/Redmine.pm ]
 then
   mkdir -p /opt/local/apache2/Authn
-  cp config/Redmine.pm /opt/local/apache2/Authn/
+  cp etc/Redmine.pm /opt/local/apache2/Authn/
 fi
 
 if [ ! -f /opt/local/apache2/conf/redmine.conf ]

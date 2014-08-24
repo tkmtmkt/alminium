@@ -3,7 +3,7 @@
 if [ ! -f /etc/perl/Apache/Authn/Redmine.pm ]
 then
   mkdir -p /etc/perl/Apache/Authn
-  cat  config/Redmine.pm |sed 's/Digest::SHA1/Digest::SHA/g' > /etc/perl/Apache/Authn/Redmine.pm
+  cat  etc/Redmine.pm |sed 's/Digest::SHA1/Digest::SHA/g' > /etc/perl/Apache/Authn/Redmine.pm
 fi
 
 if [ ! -f /etc/apache2/sites-available/redmine ]

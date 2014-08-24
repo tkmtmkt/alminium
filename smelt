@@ -220,7 +220,7 @@ then
   fi
 fi
 
-$MYSQL < config/createdb.sql
+$MYSQL < redmine/setup/createdb.sql
 
 # install chiliproject
 mkdir -p $INSTALL_DIR
@@ -258,9 +258,8 @@ then
   $RMCMD cache/redmine-$RM_VER
 fi
 
-cp config/Gemfile.local $INSTALL_DIR/
-cp config/database.yml $INSTALL_DIR/config/
-cp config/scm.yml $INSTALL_DIR/config/
+cp     redmine/Gemfile.local   $INSTALL_DIR/
+$CPCMD redmine/config/*        $INSTALL_DIR/config/
 $CPCMD theme/* $INSTALL_DIR/public/themes/
 
 # setup
@@ -277,19 +276,19 @@ echo "ja" |RAILS_ENV=production bundle exec $RAKE redmine:load_default_data
 popd
 
 # install plugins
-source inst-script/redmine-plugins
+source redmine/setup/redmine-plugins
 
 # Customize
 echo "*** run initialize SQL ***"
-$MYSQL alminium < config/init.mysql
+$MYSQL alminium < redmine/setup/init.mysql
 
 mkdir -p /etc/opt/alminium
 $CPCMD etc/* /etc/opt/alminium/
 
 mkdir -p $INSTALL_DIR/bin
 mkdir -p /var/opt/alminium/git /var/opt/alminium/svn /var/opt/alminium/hg /var/opt/alminium/maven
-$CPCMD bin/*  $INSTALL_DIR/bin/
-$CPCMD hooks $INSTALL_DIR/
+$CPCMD redmine/bin/* $INSTALL_DIR/bin/
+$CPCMD redmine/hooks $INSTALL_DIR/
 
 #chown $APACHE_USER.$APACHE_USER -R $INSTALL_DIR
 #chown $APACHE_USER.$APACHE_USER -R /var/opt/alminium

@@ -97,9 +97,8 @@ sleep 10
 
 if [ ! -f /var/lib/jenkins/config.xml ]
 then
-  cp config/jenkins-config.xml /var/lib/jenkins/config.xml
+  cp jenkins/config.xml /var/lib/jenkins/config.xml
 fi
-
 
 java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ restart
 

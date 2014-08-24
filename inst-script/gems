@@ -9,8 +9,8 @@ then
 fi
 
 # インストールするディレクトリ名
-NAME=(`grep -v "^#" config/rubygems.lst | awk -F, '{print $1}'`)
-VER=(`grep -v "^#" config/rubygems.lst | awk -F, '{print $2}'`)
+NAME=(`grep -v "^#" inst-script/rubygems.lst | awk -F, '{print $1}'`)
+VER=(`grep -v "^#" inst-script/rubygems.lst | awk -F, '{print $2}'`)
 
 for (( i = 0; i < ${#NAME[@]}; ++i ))
 do
