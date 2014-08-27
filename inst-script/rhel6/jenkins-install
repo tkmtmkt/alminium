@@ -21,7 +21,7 @@ fi
 
 if [ ! -f /etc/httpd/conf.d/jenkins.conf ]
 then
-  cp inst-script/rhel6/httpd-jenkins.conf /etc/httpd/conf.d/jenkins.conf
+  cp etc/rhel6/jenkins.conf /etc/httpd/conf.d/jenkins.conf
 fi
  
 sed -i 's/JENKINS_ARGS=""/JENKINS_ARGS="--prefix=\/jenkins"/' /etc/sysconfig/jenkins

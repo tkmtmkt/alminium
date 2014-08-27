@@ -13,7 +13,7 @@ then
   mkdir -p /opt/local/apache2/conf
   PASSENGER_VERSION=`passenger-config --version`
 
-  sed 's/%HOSTNAME%/'$HOSTNAME'/' inst-script/mac/httpd-redmine.conf | \
+  sed 's/%HOSTNAME%/'$HOSTNAME'/' etc/mac/redmine.conf | \
       sed 's/%PASSENGER_VERSION%/'$PASSENGER_VERSION'/' |
     if [ "$SSL" = "y" ]
     then
@@ -22,7 +22,7 @@ then
         cat
     fi > /opt/local/apache2/conf/redmine.conf
 
-  sed 's/%HOSTNAME%/'$HOSTNAME'/' inst-script/mac/httpd-vcs.conf >  /opt/local/apache2/conf/vcs.conf
+  sed 's/%HOSTNAME%/'$HOSTNAME'/' etc/mac/vcs.conf >  /opt/local/apache2/conf/vcs.conf
 
   if [ "$SSL" = "y" ]
   then

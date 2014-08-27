@@ -12,7 +12,7 @@ fi
 
 if [ ! -f /etc/apache2/sites-available/jenkins ]
 then
-  cp inst-script/debian/httpd-jenkins.conf /etc/apache2/sites-available/jenkins
+  cp etc/debian/jenkins.conf /etc/apache2/sites-available/jenkins
   a2ensite jenkins
 fi
  
