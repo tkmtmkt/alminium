@@ -1,6 +1,6 @@
 #!/bin/bash
-apt-get update
-apt-get -y -qq install `grep -v "^#" inst-script/debian/packages.lst`
+apt-get -q2 update
+apt-get -y install `grep -v "^#" inst-script/debian/packages.lst`
 REALLY_GEM_UPDATE_SYSTEM=1 gem update --system
 
 if [ "$SSL" = "y" ]
