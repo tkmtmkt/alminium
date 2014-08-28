@@ -3,6 +3,7 @@
 # Smart installer for redmine/chiliproject.
 ############################################################
 
+
 export RAILS_ENV=production
 export INSTALL_DIR=/opt/alminium
 export SCRIPT_DIR=`pwd`
@@ -37,6 +38,7 @@ fi
 if [ -f /etc/redhat-release ]
 then
     APACHE_USER=apache
+    APACHE_CONF_DIR=/etc/httpd/conf.d
     MYSQLD='/etc/init.d/mysqld'
     MYSQL='mysql'
     CHK=`egrep "CentOS release 5|Red Hat Enterprise Linux .* 5" /etc/redhat-release`
@@ -54,6 +56,7 @@ then
 elif [ -f /etc/system-release ]
 then
     APACHE_USER=apache
+    APACHE_CONF_DIR=/etc/httpd/conf.d
     MYSQLD='/etc/init.d/mysqld'
     MYSQL='mysql'
     CHK=`egrep "Amazon Linux AMI" /etc/system-release`
@@ -66,6 +69,7 @@ elif [ -f /etc/debian_version ]
 then
     OS='debian'
     APACHE_USER=www-data
+    APACHE_CONF_DIR=/etc/apache2/conf.d
     MYSQLD='/etc/init.d/mysql'
 #    TODO: -u -pを指定するとcreatedb.sqlの読み込みに失敗する
 #    MYSQL="$MYSQL -u root -p"
@@ -81,6 +85,7 @@ else
     then
       OS='mac'
       APACHE_USER=www
+      APACHE_CONF_DIR=/opt/local/apache2/conf
       MYSQLD=/opt/local/share/mysql55/support-files/mysql.server
       MYSQLD=mysql
       CPCMD='cp -Rf'
@@ -268,6 +273,9 @@ cd $INSTALL_DIR
 
 echo "*** execute bundle ***"
 bundle install --path vendor/bundler --without development test postgresql sqlite
+
+bundle exec passenger-install-apache2-module --auto
+bundle exec passenger-install-apache2-module --snippet > $APACHE_CONF_DIR/passenger.conf
 
 bundle exec $RAKE generate_secret_token
 bundle exec $RAKE db:migrate

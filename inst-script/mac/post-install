@@ -11,10 +11,8 @@ fi
 if [ ! -f /opt/local/apache2/conf/redmine.conf ]
 then
   mkdir -p /opt/local/apache2/conf
-  PASSENGER_VERSION=`passenger-config --version`
 
-  sed 's/%HOSTNAME%/'$HOSTNAME'/' etc/mac/redmine.conf | \
-      sed 's/%PASSENGER_VERSION%/'$PASSENGER_VERSION'/' |
+  sed 's/%HOSTNAME%/'$HOSTNAME'/' etc/mac/redmine.conf |
     if [ "$SSL" = "y" ]
     then
         sed 's/#Rewrite/Rewrite/'
