@@ -145,7 +145,7 @@ fi
 
 source inst-script/config-email.sh
 
-if [ -e inst-script/$OS/jenkins-install -a "$ENABLE_JENKINS" = "" ]
+if [ -e jenkins/setup/$OS/install.sh -a "$ENABLE_JENKINS" = "" ]
 then
   echo -n "継続的インテグレーションツールのJenkinsのインストール・設定を"
   echo -n "行うことができます。デフォルトはインストールしません。"
@@ -310,8 +310,8 @@ fi
 
 if [ "$ENABLE_JENKINS" = "y" ]
 then
-  source inst-script/$OS/jenkins-install
-fi  
+  source jenkins/setup/$OS/install.sh
+fi
 
 source inst-script/$OS/post-install
 
