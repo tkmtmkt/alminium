@@ -311,6 +311,7 @@ fi
 if [ "$ENABLE_JENKINS" = "y" ]
 then
   source jenkins/setup/$OS/install.sh
+  source jenkins/setup/config.sh
 fi
 
 source inst-script/$OS/post-install

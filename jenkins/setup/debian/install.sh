@@ -5,87 +5,13 @@ echo "deb http://pkg.jenkins-ci.org/debian binary/" > /etc/apt/sources.list.d/je
 apt-get -q2 update
 apt-get -y install jenkins
 
-if [ ! -d /var/lib/jenkins/persona ]
-then
-  git clone https://github.com/okamototk/jenkins-persona-hudmi /var/lib/jenkins/persona
-fi
+sed -i 's/JENKINS_ARGS="--webroot/JENKINS_ARGS="--prefix=\/jenkins --webroot/' /etc/default/jenkins
 
+service jenkins restart
+
+# apache site 設定
 if [ ! -f /etc/apache2/sites-available/jenkins ]
 then
   cp etc/debian/jenkins.conf /etc/apache2/sites-available/jenkins
   a2ensite jenkins
 fi
- 
-sed -i 's/JENKINS_ARGS="--webroot/JENKINS_ARGS="--prefix=\/jenkins --webroot/' /etc/default/jenkins
-
-if [ ! -f /var/lib/jenkins/plugins ]
-then
-  mkdir /var/lib/jenkins/plugins
-  chown jenkins.jenkins -R /var/lib/jenkins/plugins
-fi
-
-service jenkins restart
-
-RET=-1
-until  [ "$RET" -eq "0" ]
-do
-  sleep 3
-  wget --no-proxy -O $INSTALL_DIR/bin/jenkins-cli.jar http://localhost:8080/jenkins/jnlpJars/jenkins-cli.jar
-  RET=$?
-done
-
-wget -O /tmp/default.js http://updates.jenkins-ci.org/update-center.json
- 
-# remove first and last line javascript wrapper
-sed '1d;$d' /tmp/default.js > /tmp/default.json
-  
-# Now push it to the update URL
-curl --noproxy localhost -X POST -H "Accept: application/json" -d @/tmp/default.json http://localhost:8080/jenkins/updateCenter/byId/default/postBack --verbose
-
-if [ x"$http_proxy" != x"" ]
-then
-  # set proxy. sorry IPv4 only and user:pass not supported...
-  proxyserver=`echo $http_proxy | cut -d':' -f2 | sed 's/\/\///g'`
-  proxyport=`echo $http_proxy | cut -d':' -f3 | sed 's/\///g'`
-  #echo $proxyserver
-  #echo $proxyport
-  curl --noproxy localhost -X POST --data "json={\"name\": \"$proxyserver\", \"port\": \"$proxyport\", \"userName\": \"$proxyuser\", \"password\": \"$proxypass\", \"noProxyHost\": \"\"}" http://localhost:8080/jenkins/pluginManager/proxyConfigure --verbose
-  RET=$?
-  if [ "$RET" -ne "0" ]
-  then
-    echo "proxy setting for jenkins fail"
-    exit 1
-  fi
-  #service jenkins restart
-fi
-
-# jenkinsプラグインファイルをカレントディレクトリにダウンロードしてから
-# インストールしているようなので、redmineがインストールできない。
-# 暫定回避策としてtmpディレクトリ内に移動してから処理する。
-mkdir tmp
-pushd tmp
-RET=-1
-until  [ "$RET" -eq "0" ]
-do
-  sleep 3
-  java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ install-plugin reverse-proxy-auth-plugin
-  RET=$?
-done
-
-#java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ install-plugin reverse-proxy-auth-plugin
-java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ install-plugin persona
-java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ install-plugin git
-java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ install-plugin redmine
-java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ install-plugin dashboard-view
-popd
-rm -rf tmp
-
-sleep 10
-
-if [ ! -f /var/lib/jenkins/config.xml ]
-then
-  cp jenkins/config.xml /var/lib/jenkins/config.xml
-fi
-
-java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ restart
-
