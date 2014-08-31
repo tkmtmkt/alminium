@@ -8,10 +8,3 @@ apt-get -y install jenkins
 sed -i 's/JENKINS_ARGS="--webroot/JENKINS_ARGS="--prefix=\/jenkins --webroot/' /etc/default/jenkins
 
 service jenkins restart
-
-# apache site 設定
-if [ ! -f /etc/apache2/sites-available/jenkins ]
-then
-  cp etc/debian/jenkins.conf /etc/apache2/sites-available/jenkins
-  a2ensite jenkins
-fi

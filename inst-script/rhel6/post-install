@@ -6,28 +6,18 @@ then
   cp etc/Redmine.pm /etc/httpd/Apache/Authn/
 fi
 
-if [ ! -f /etc/httpd/conf.d/redmine.conf ]
-then
-  sed 's/%HOSTNAME%/'$HOSTNAME'/' etc/rhel6/redmine.conf |
-	  if [ "$SSL" = "y" ]
-	  then 
-	      sed 's/#Rewrite/Rewrite/'
-	  else
-	      cat
-	  fi > /etc/httpd/conf.d/redmine.conf
-  sed 's/%HOSTNAME%/'$HOSTNAME'/' etc/rhel6/vcs.conf >  /etc/httpd/conf.d/vcs.conf     
-  if [ "$SSL" = "y" ]
-  then
-      CHK=`grep "^DocumentRoot /opt/alminium/public" /etc/httpd/conf.d/ssl.conf`
-      if [ "$CHK" = "" ]
-      then
-          sed -i 's/#DocumentRoot "\/var\/www\/html"/DocumentRoot \/opt\/alminium\/public/' /etc/httpd/conf.d/ssl.conf
-          sed -i 's/#ServerName www.example.com:443/ServerName '$HOSTNAME':443/' /etc/httpd/conf.d/ssl.conf
-      fi
-  fi
-  cp -f etc/rhel6/maven.conf /etc/httpd/conf.d/maven.conf
-fi
-          
+for FILE in $(ls etc/ | grep '.conf$')
+do
+  sed -e 's/#HOSTNAME#/'$HOSTNAME'/' \
+      -e 's/#'$OS'# *//' \
+      "etc/$FILE" > "$ALM_ETC_DIR/$FILE"
+done
+
+for FILE in $(ls "$ALM_ETC_DIR/" | grep '.conf$')
+do
+  ln -sf "$ALM_ETC_DIR/$FILE" "$APACHE_CONF_DIR/$FILE"
+done
+
 # セキュリティ無効化の設定        
 if [ ! "$USE_DISABLE_SECURITY" = "n" ]
 then

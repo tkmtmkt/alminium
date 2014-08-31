@@ -8,30 +8,17 @@ then
   cp etc/Redmine.pm /opt/local/apache2/Authn/
 fi
 
-if [ ! -f /opt/local/apache2/conf/redmine.conf ]
-then
-  mkdir -p /opt/local/apache2/conf
+for FILE in $(ls etc/ | grep '.conf$')
+do
+  sed -e 's/#HOSTNAME#/'$HOSTNAME'/' \
+      -e 's/#'$OS'# *//' \
+      "etc/$FILE" > "$ALM_ETC_DIR/$FILE"
+done
 
-  sed 's/%HOSTNAME%/'$HOSTNAME'/' etc/mac/redmine.conf |
-    if [ "$SSL" = "y" ]
-    then
-        sed 's/#Rewrite/Rewrite/'
-    else
-        cat
-    fi > /opt/local/apache2/conf/redmine.conf
-
-  sed 's/%HOSTNAME%/'$HOSTNAME'/' etc/mac/vcs.conf >  /opt/local/apache2/conf/vcs.conf
-
-  if [ "$SSL" = "y" ]
-  then
-      CHK=`grep "^DocumentRoot /opt/alminium/public" /opt/local/apache2/conf/ssl.conf`
-      if [ "$CHK" = "" ]
-      then
-          sed 's/#DocumentRoot "\/var\/www\/html"/DocumentRoot \/opt\/alminium\/public/' /opt/local/apache2/conf/extra/httpd-ssl.conf > /tmp/ssl.conf
-          cp /tmp/ssl.conf /opt/local/apache2/conf/ssl.conf
-      fi
-  fi
-fi
+for FILE in $(ls "$ALM_ETC_DIR/" | grep '.conf$')
+do
+  ln -sf "$ALM_ETC_DIR/$FILE" "$APACHE_CONF_DIR/$FILE"
+done
 
 pushd .
 

@@ -3,9 +3,12 @@
 # Smart installer for redmine/chiliproject.
 ############################################################
 
+export ALM_SRC_DIR=$(cd $(dirname $0);pwd)
+export ALM_ETC_DIR=/etc/opt/alminium
+export ALM_VAR_DIR=/var/opt/alminium
+export INSTALL_DIR=/opt/alminium
 
 export RAILS_ENV=production
-export INSTALL_DIR=/opt/alminium
 export SCRIPT_DIR=`pwd`
 RM_VER=2.5.2
 RM_ARC=http://www.redmine.org/releases/redmine-${RM_VER}.tar.gz
@@ -26,7 +29,7 @@ if [ "$USER" != 'root' ]
 then
     echo "ALMiniumのインストールはルートユーザで行う必要があります。"
     echo "rootユーザもしくはsudoで実行してください。"
-    exit 1  
+    exit 1
 fi
 
 if [ ! -d cache ]
@@ -38,7 +41,7 @@ fi
 if [ -f /etc/redhat-release ]
 then
     APACHE_USER=apache
-    APACHE_CONF_DIR=/etc/httpd/conf.d
+    export APACHE_CONF_DIR=/etc/httpd/conf.d
     MYSQLD='/etc/init.d/mysqld'
     MYSQL='mysql'
     CHK=`egrep "CentOS release 5|Red Hat Enterprise Linux .* 5" /etc/redhat-release`
@@ -56,7 +59,7 @@ then
 elif [ -f /etc/system-release ]
 then
     APACHE_USER=apache
-    APACHE_CONF_DIR=/etc/httpd/conf.d
+    export APACHE_CONF_DIR=/etc/httpd/conf.d
     MYSQLD='/etc/init.d/mysqld'
     MYSQL='mysql'
     CHK=`egrep "Amazon Linux AMI" /etc/system-release`
@@ -69,7 +72,7 @@ elif [ -f /etc/debian_version ]
 then
     OS='debian'
     APACHE_USER=www-data
-    APACHE_CONF_DIR=/etc/apache2/conf.d
+    export APACHE_CONF_DIR=/etc/apache2/conf.d
     MYSQLD='/etc/init.d/mysql'
 #    TODO: -u -pを指定するとcreatedb.sqlの読み込みに失敗する
 #    MYSQL="$MYSQL -u root -p"
@@ -85,7 +88,7 @@ else
     then
       OS='mac'
       APACHE_USER=www
-      APACHE_CONF_DIR=/opt/local/apache2/conf
+      export APACHE_CONF_DIR=/opt/local/apache2/conf
       MYSQLD=/opt/local/share/mysql55/support-files/mysql.server
       MYSQLD=mysql
       CPCMD='cp -Rf'
@@ -290,24 +293,29 @@ source redmine/setup/redmine-plugins
 echo "*** run initialize SQL ***"
 $MYSQL alminium < redmine/setup/init.mysql
 
-mkdir -p /etc/opt/alminium
-$CPCMD etc/* /etc/opt/alminium/
-
 mkdir -p $INSTALL_DIR/bin
-mkdir -p /var/opt/alminium/git /var/opt/alminium/svn /var/opt/alminium/hg /var/opt/alminium/maven
 $CPCMD redmine/bin/* $INSTALL_DIR/bin/
 $CPCMD redmine/hooks $INSTALL_DIR/
-
-#chown $APACHE_USER.$APACHE_USER -R $INSTALL_DIR
-#chown $APACHE_USER.$APACHE_USER -R /var/opt/alminium
 chown -R $APACHE_USER:$APACHE_USER $INSTALL_DIR
-chown -R $APACHE_USER:$APACHE_USER /var/opt/alminium
 
+# create directory for vcs
+mkdir -p $ALM_VAR_DIR/{git,svn,hg,maven}
+chown -R $APACHE_USER:$APACHE_USER $ALM_VAR_DIR
+
+# setup for apache
+mkdir -p $ALM_ETC_DIR
+for FILE in $(ls -F -I *.conf etc | grep -v /)
+do
+  cp "etc/$FILE" $ALM_ETC_DIR/
+done
+
+# setup for email
 if [ "$SMTPSERVER" != "" ]
 then
   source inst-script/gen-email-config.sh
 fi
 
+# setup for jenkins
 if [ "$ENABLE_JENKINS" = "y" ]
 then
   source jenkins/setup/$OS/install.sh

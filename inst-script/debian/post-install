@@ -6,11 +6,17 @@ then
   cat  etc/Redmine.pm |sed 's/Digest::SHA1/Digest::SHA/g' > /etc/perl/Apache/Authn/Redmine.pm
 fi
 
-if [ ! -f /etc/apache2/sites-available/redmine ]
-then
-  sed 's/%HOSTNAME%/'$HOSTNAME'/' etc/debian/redmine.conf > /etc/apache2/sites-available/redmine
-  sed 's/%HOSTNAME%/'$HOSTNAME'/' etc/debian/vcs.conf > /etc/apache2/sites-available/vcs
-fi
+for FILE in $(ls etc/ | grep '.conf$')
+do
+  sed -e 's/#HOSTNAME#/'$HOSTNAME'/' \
+      -e 's/#'$OS'# *//' \
+      "etc/$FILE" > "$ALM_ETC_DIR/$FILE"
+done
+
+for FILE in $(ls "$ALM_ETC_DIR/" | grep '.conf$')
+do
+  ln -sf "$ALM_ETC_DIR/$FILE" "$APACHE_CONF_DIR/$FILE"
+done
 
 a2enmod expires
 a2enmod dav_fs
@@ -19,8 +25,6 @@ a2enmod authz_svn
 a2enmod proxy_http
 a2enmod headers
 a2enmod rewrite
-a2ensite redmine
-a2ensite vcs
 
 service apache2 stop
 service apache2 start

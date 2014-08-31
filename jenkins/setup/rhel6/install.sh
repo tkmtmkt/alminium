@@ -17,9 +17,3 @@ rpm -vi --force inst-script/rhel6/mod_auth_mysql-3.0.0-11.el6.1.redmine.x86_64.r
 sed -i 's/JENKINS_ARGS=""/JENKINS_ARGS="--prefix=\/jenkins"/' /etc/sysconfig/jenkins
 
 service jenkins restart
-
-# apache site設定
-if [ ! -f /etc/httpd/conf.d/jenkins.conf ]
-then
-  cp etc/rhel/jenkins.conf /etc/httpd/conf.d/jenkins.conf
-fi
