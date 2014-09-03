@@ -217,6 +217,7 @@ then
   RAKE=rake
 fi
 
+# setup database
 $MYSQLD start
 
 if [ "$MYSQL" = "" ]
@@ -229,6 +230,17 @@ then
 fi
 
 $MYSQL < redmine/setup/createdb.sql
+
+# setup for apache
+mkdir -p $ALM_ETC_DIR
+for FILE in $(ls -F -I *.conf etc | grep -v /)
+do
+  cp "etc/$FILE" $ALM_ETC_DIR/
+done
+
+# create directory for vcs
+mkdir -p $ALM_VAR_DIR/{git,svn,hg,maven}
+chown -R $APACHE_USER:$APACHE_USER $ALM_VAR_DIR
 
 # install chiliproject
 mkdir -p $INSTALL_DIR
@@ -297,17 +309,6 @@ mkdir -p $INSTALL_DIR/bin
 $CPCMD redmine/bin/* $INSTALL_DIR/bin/
 $CPCMD redmine/hooks $INSTALL_DIR/
 chown -R $APACHE_USER:$APACHE_USER $INSTALL_DIR
-
-# create directory for vcs
-mkdir -p $ALM_VAR_DIR/{git,svn,hg,maven}
-chown -R $APACHE_USER:$APACHE_USER $ALM_VAR_DIR
-
-# setup for apache
-mkdir -p $ALM_ETC_DIR
-for FILE in $(ls -F -I *.conf etc | grep -v /)
-do
-  cp "etc/$FILE" $ALM_ETC_DIR/
-done
 
 # setup for email
 if [ "$SMTPSERVER" != "" ]
