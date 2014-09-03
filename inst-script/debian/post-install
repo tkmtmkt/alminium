@@ -3,16 +3,13 @@
 if [ ! -f /etc/perl/Apache/Authn/Redmine.pm ]
 then
   mkdir -p /etc/perl/Apache/Authn
-  cat  config/Redmine.pm |sed 's/Digest::SHA1/Digest::SHA/g' > /etc/perl/Apache/Authn/Redmine.pm
+  cat  etc/Redmine.pm |sed 's/Digest::SHA1/Digest::SHA/g' > /etc/perl/Apache/Authn/Redmine.pm
 fi
 
 if [ ! -f /etc/apache2/sites-available/redmine ]
 then
-  PASSENGER_VERSION=`passenger-config  --version`
-
-  sed 's/%HOSTNAME%/'$HOSTNAME'/' inst-script/debian/httpd-redmine.conf |\
-    sed 's/%PASSENGER_VERSION%/'$PASSENGER_VERSION'/' > /etc/apache2/sites-available/redmine
-  sed 's/%HOSTNAME%/'$HOSTNAME'/' inst-script/debian/httpd-vcs.conf > /etc/apache2/sites-available/vcs
+  sed 's/%HOSTNAME%/'$HOSTNAME'/' etc/debian/redmine.conf > /etc/apache2/sites-available/redmine
+  sed 's/%HOSTNAME%/'$HOSTNAME'/' etc/debian/vcs.conf > /etc/apache2/sites-available/vcs
 fi
 
 a2enmod expires

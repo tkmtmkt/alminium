@@ -21,7 +21,7 @@ fi
 
 if [ ! -f /etc/httpd/conf.d/jenkins.conf ]
 then
-  cp inst-script/rhel6/httpd-jenkins.conf /etc/httpd/conf.d/jenkins.conf
+  cp etc/rhel6/jenkins.conf /etc/httpd/conf.d/jenkins.conf
 fi
  
 sed -i 's/JENKINS_ARGS=""/JENKINS_ARGS="--prefix=\/jenkins"/' /etc/sysconfig/jenkins
@@ -79,6 +79,11 @@ then
   #service jenkins restart
 fi
 
+# jenkinsプラグインファイルをカレントディレクトリにダウンロードしてから
+# インストールしているようなので、redmineがインストールできない。
+# 暫定回避策としてtmpディレクトリ内に移動してから処理する。
+mkdir tmp
+pushd tmp
 RET=-1
 until  [ "$RET" -eq "0" ]
 do
@@ -92,14 +97,15 @@ java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ ins
 java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ install-plugin git
 java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ install-plugin redmine
 java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ install-plugin dashboard-view
+popd
+rm -rf tmp
 
 sleep 10
 
 if [ ! -f /var/lib/jenkins/config.xml ]
 then
-  cp config/jenkins-config.xml /var/lib/jenkins/config.xml
+  cp jenkins/config.xml /var/lib/jenkins/config.xml
 fi
-
 
 java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ restart
 

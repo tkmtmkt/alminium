@@ -34,6 +34,7 @@ then
     rm -fr /etc/httpd/conf.d/jenkins.conf
     rm -fr /etc/httpd/conf.d/redmine.conf
     rm -fr /etc/httpd/conf.d/vcs.conf
+    rm -fr /etc/{apache2,httpd}/conf.d/passenger.conf
     rm -fr /etc/opt/alminium
 fi
 

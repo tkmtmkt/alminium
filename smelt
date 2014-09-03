@@ -3,6 +3,7 @@
 # Smart installer for redmine/chiliproject.
 ############################################################
 
+
 export RAILS_ENV=production
 export INSTALL_DIR=/opt/alminium
 export SCRIPT_DIR=`pwd`
@@ -37,6 +38,7 @@ fi
 if [ -f /etc/redhat-release ]
 then
     APACHE_USER=apache
+    APACHE_CONF_DIR=/etc/httpd/conf.d
     MYSQLD='/etc/init.d/mysqld'
     MYSQL='mysql'
     CHK=`egrep "CentOS release 5|Red Hat Enterprise Linux .* 5" /etc/redhat-release`
@@ -54,6 +56,7 @@ then
 elif [ -f /etc/system-release ]
 then
     APACHE_USER=apache
+    APACHE_CONF_DIR=/etc/httpd/conf.d
     MYSQLD='/etc/init.d/mysqld'
     MYSQL='mysql'
     CHK=`egrep "Amazon Linux AMI" /etc/system-release`
@@ -66,6 +69,7 @@ elif [ -f /etc/debian_version ]
 then
     OS='debian'
     APACHE_USER=www-data
+    APACHE_CONF_DIR=/etc/apache2/conf.d
     MYSQLD='/etc/init.d/mysql'
 #    TODO: -u -pを指定するとcreatedb.sqlの読み込みに失敗する
 #    MYSQL="$MYSQL -u root -p"
@@ -81,6 +85,7 @@ else
     then
       OS='mac'
       APACHE_USER=www
+      APACHE_CONF_DIR=/opt/local/apache2/conf
       MYSQLD=/opt/local/share/mysql55/support-files/mysql.server
       MYSQLD=mysql
       CPCMD='cp -Rf'
@@ -220,7 +225,7 @@ then
   fi
 fi
 
-$MYSQL < config/createdb.sql
+$MYSQL < redmine/setup/createdb.sql
 
 # install chiliproject
 mkdir -p $INSTALL_DIR
@@ -258,10 +263,9 @@ then
   $RMCMD cache/redmine-$RM_VER
 fi
 
-cp config/Gemfile.local $INSTALL_DIR/
-cp config/database.yml $INSTALL_DIR/config/
-cp config/scm.yml $INSTALL_DIR/config/
-$CPCMD theme/* $INSTALL_DIR/public/themes/
+cp     redmine/Gemfile.local   $INSTALL_DIR/
+$CPCMD redmine/config/*        $INSTALL_DIR/config/
+$CPCMD redmine/public/themes/* $INSTALL_DIR/public/themes/
 
 # setup
 pushd .
@@ -270,6 +274,9 @@ cd $INSTALL_DIR
 echo "*** execute bundle ***"
 bundle install --path vendor/bundler --without development test postgresql sqlite
 
+bundle exec passenger-install-apache2-module --auto
+bundle exec passenger-install-apache2-module --snippet > $APACHE_CONF_DIR/passenger.conf
+
 bundle exec $RAKE generate_secret_token
 bundle exec $RAKE db:migrate
 echo "ja" |RAILS_ENV=production bundle exec $RAKE redmine:load_default_data
@@ -277,19 +284,19 @@ echo "ja" |RAILS_ENV=production bundle exec $RAKE redmine:load_default_data
 popd
 
 # install plugins
-source inst-script/redmine-plugins
+source redmine/setup/redmine-plugins
 
 # Customize
 echo "*** run initialize SQL ***"
-$MYSQL alminium < config/init.mysql
+$MYSQL alminium < redmine/setup/init.mysql
 
 mkdir -p /etc/opt/alminium
 $CPCMD etc/* /etc/opt/alminium/
 
 mkdir -p $INSTALL_DIR/bin
 mkdir -p /var/opt/alminium/git /var/opt/alminium/svn /var/opt/alminium/hg /var/opt/alminium/maven
-$CPCMD bin/*  $INSTALL_DIR/bin/
-$CPCMD hooks $INSTALL_DIR/
+$CPCMD redmine/bin/* $INSTALL_DIR/bin/
+$CPCMD redmine/hooks $INSTALL_DIR/
 
 #chown $APACHE_USER.$APACHE_USER -R $INSTALL_DIR
 #chown $APACHE_USER.$APACHE_USER -R /var/opt/alminium
