@@ -278,7 +278,7 @@ echo "*** execute bundle ***"
 bundle install --path vendor/bundler --without development test postgresql sqlite
 
 bundle exec passenger-install-apache2-module --auto
-bundle exec passenger-install-apache2-module --snippet > $APACHE_CONF_DIR/passenger.conf
+bundle exec passenger-install-apache2-module --snippet > $ALM_ETC_DIR/passenger.conf
 
 bundle exec $RAKE generate_secret_token
 bundle exec $RAKE db:migrate
