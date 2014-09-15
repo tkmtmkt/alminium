@@ -17,16 +17,8 @@ do
       "etc/$FILE" > "$ALM_ETC_DIR/$FILE"
 done
 
-if [ $(apachectl -v | grep -o 'Apache\/2\.[24]') = "Apache/2.2" ]
-then
-  ln -sf "$ALM_ETC_DIR/passenger.conf" "$APACHE_CONF_DIR/"
-  ln -sf "$ALM_ETC_DIR/alminium.conf"  "$APACHE_CONF_DIR/"
-else
-  ln -sf "$ALM_ETC_DIR/passenger.conf" "/etc/apache2/mods-available/passenger.load"
-  ln -sf "$ALM_ETC_DIR/alminium.conf"  "/etc/apache2/sites-available/"
-  a2enmod passenger
-  a2ensite alminium.conf
-fi
+ln -sf "$ALM_ETC_DIR/passenger.conf" "/etc/apache2/mods-available/passenger.load"
+ln -sf "$ALM_ETC_DIR/alminium.conf"  "/etc/apache2/sites-available/alminium.conf"
 
 a2enmod expires
 a2enmod dav_fs
@@ -35,6 +27,8 @@ a2enmod authz_svn
 a2enmod proxy_http
 a2enmod headers
 a2enmod rewrite
+a2enmod passenger
+a2ensite alminium.conf
 
 service apache2 stop
 service apache2 start
