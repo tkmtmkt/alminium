@@ -83,16 +83,30 @@ cd $INSTALL_DIR
 # for Hudson
 mv plugins/redmine_hudson/Gemfile plugins/redmine_hudson/Gemfile.org
 
-bundle install --path vendor/bundler --without development test postgresql sqlite
+# redmineに必要なgemをインストール
+bundle install --path vendor/bundle --without development test
 
-bundle exec $RAKE redmine:plugins:migrate
-bundle exec $RAKE generate_secret_token
-bundle exec $RAKE db:migrate
-bundle exec $RAKE tmp:cache:clear
-bundle exec $RAKE tmp:sessions:clear
-bundle exec $RAKE redmine:plugins:process_version_change
+# mod_passengerをインストール
+bundle exec passenger-install-apache2-module --auto
+bundle exec passenger-install-apache2-module --snippet > $ALM_ETC_DIR/passenger.conf
+
+# セッションストア秘密鍵を生成
+bundle exec rake generate_secret_token
+
+# データベース上にテーブルを作成
+bundle exec rake db:migrate RAILS_ENV=production
+bundle exec rake redmine:plugins:migrate RAILS_ENV=production
+
+# データベースにデフォルトデータを登録
+echo 'ja' |\
+bundle exec rake redmine:load_default_data RAILS_ENV=production
+
+bundle exec rake tmp:cache:clear
+bundle exec rake tmp:sessions:clear
+
+bundle exec rake redmine:plugins:process_version_change
 touch backlogs.dev
-bundle exec $RAKE redmine:backlogs:install task_tracker=サポート story_trackers=機能 labels=false
+bundle exec rake redmine:backlogs:install task_tracker=サポート story_trackers=機能 labels=false
 
 # FIXME: to avoid open_flash_chart assets aren't copied.
 cp -fr plugins/open_flash_chart/assets public/plugin_assets/open_flash_chart

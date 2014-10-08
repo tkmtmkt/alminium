@@ -6,59 +6,51 @@ then
   cp etc/Redmine.pm /etc/httpd/Apache/Authn/
 fi
 
-if [ ! -f /etc/httpd/conf.d/redmine.conf ]
-then
-  sed 's/%HOSTNAME%/'$HOSTNAME'/' etc/rhel6/redmine.conf |
-	  if [ "$SSL" = "y" ]
-	  then 
-	      sed 's/#Rewrite/Rewrite/'
-	  else
-	      cat
-	  fi > /etc/httpd/conf.d/redmine.conf
-  sed 's/%HOSTNAME%/'$HOSTNAME'/' etc/rhel6/vcs.conf >  /etc/httpd/conf.d/vcs.conf     
-  if [ "$SSL" = "y" ]
-  then
-      CHK=`grep "^DocumentRoot /opt/alminium/public" /etc/httpd/conf.d/ssl.conf`
-      if [ "$CHK" = "" ]
-      then
-          sed -i 's/#DocumentRoot "\/var\/www\/html"/DocumentRoot \/opt\/alminium\/public/' /etc/httpd/conf.d/ssl.conf
-          sed -i 's/#ServerName www.example.com:443/ServerName '$HOSTNAME':443/' /etc/httpd/conf.d/ssl.conf
-      fi
-  fi
-  cp -f etc/rhel6/maven.conf /etc/httpd/conf.d/maven.conf
-fi
-          
-# セキュリティ無効化の設定        
+if [ "SSL" = "Y" ]; then REPLACE_SSL="#SSL# *"; fi
+if [ "ENABLE_JENKINS" = "Y" ]; then REPLACE_JENKINS="#JENKINS# *"; fi
+for FILE in $(ls etc/ | grep '.conf$')
+do
+  sed -e 's/#HOSTNAME#/'$HOSTNAME'/' \
+      -e 's/#'$OS'# *//' \
+      -e 's/'$REPLACE_SSL'//' \
+      -e 's/'$REPLACE_JENKINS'//' \
+      "etc/$FILE" > "$ALM_ETC_DIR/$FILE"
+done
+
+ln -sf "$ALM_ETC_DIR/passenger.conf" "$APACHE_CONF_DIR/"
+ln -sf "$ALM_ETC_DIR/alminium.conf"  "$APACHE_CONF_DIR/"
+
+# セキュリティ無効化の設定
 if [ ! "$USE_DISABLE_SECURITY" = "n" ]
 then
   # SELinuxを無効化
   echo 0 > /selinux/enforce
   CHK=`grep SELINUX=enforcing /etc/selinux/config`
-  if [ ! "$CHK" = '' ]                            
-  then                
+  if [ ! "$CHK" = '' ]
+  then
     sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config 
-    echo "SELinuxが無効化されました"          
+    echo "SELinuxが無効化されました"
   fi
-              
+
   # ファイアウォールの設定で80番(http)を許可
   CHK=`grep "dport 80" /etc/sysconfig/iptables`
-  if [ "$CHK" = '' ]                           
-  then              
+  if [ "$CHK" = '' ]
+  then
     RULENUM=`iptables-save |grep INPUT |grep -n "dport 22"|awk -F : '{print $1}'`
     iptables -I  INPUT ${RULENUM} -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
     iptables-save > /etc/sysconfig/iptables
     echo "tcp 80番ポートのアクセスを許可しました"
-  fi                                               
+  fi
   CHK=`grep "dport 443" /etc/sysconfig/iptables`
-  if [ "$CHK" = '' ]                           
-  then              
+  if [ "$CHK" = '' ]
+  then
     RULENUM=`iptables-save |grep INPUT |grep -n "dport 22"|awk -F : '{print $1}'`
-    iptables -I  INPUT ${RULENUM} -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT    
+    iptables -I  INPUT ${RULENUM} -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
     iptables-save > /etc/sysconfig/iptables
     echo "tcp 443番ポートのアクセスを許可しました"
-  fi                                               
+  fi
 fi
-    
+
 chkconfig --add httpd
 chkconfig httpd on
 service httpd stop

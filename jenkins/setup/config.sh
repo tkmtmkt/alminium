@@ -1,39 +1,12 @@
-#!/bin/sh
-
-wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
-rpm --import http://pkg.jenkins-ci.org/redhat/jenkins-ci.org.key
-yum install -y jenkins 
-yum install -y java-1.7.0-openjdk-devel
-rpm -vi --force inst-script/rhel6/mod_auth_mysql-3.0.0-11.el6.1.redmine.x86_64.rpm
-
-#CHK=`grep "dport 8080" /etc/sysconfig/iptables`
-#if [ "$CHK" = '' ]
-#then
-#  RULENUM=`iptables-save |grep INPUT |grep -n "dport 22"|awk -F : '{print $1}'`
-#  iptables -I  INPUT ${RULENUM} -p tcp -m state --state NEW -m tcp --dport 8080 -j ACCEPT
-#  iptables-save > /etc/sysconfig/iptables
-#fi
-
-if [ ! -d /var/lib/jenkins/persona ]
-then
-  git clone https://github.com/okamototk/jenkins-persona-hudmi /var/lib/jenkins/persona
-fi
-
-if [ ! -f /etc/httpd/conf.d/jenkins.conf ]
-then
-  cp etc/rhel6/jenkins.conf /etc/httpd/conf.d/jenkins.conf
-fi
- 
-sed -i 's/JENKINS_ARGS=""/JENKINS_ARGS="--prefix=\/jenkins"/' /etc/sysconfig/jenkins
+#!/bin/bash
 
 if [ ! -f /var/lib/jenkins/plugins ]
 then
   mkdir /var/lib/jenkins/plugins
-  chown jenkins.jenkins /var/lib/jenkins/plugins
+  chown jenkins:jenkins /var/lib/jenkins/plugins
 fi
 
-service jenkins start
-
+# download jenkins-cli.jar
 RET=-1
 until  [ "$RET" -eq "0" ]
 do
@@ -43,19 +16,20 @@ do
 done
 
 wget -O /tmp/default.js http://updates.jenkins-ci.org/update-center.json
- 
+
 # remove first and last line javascript wrapper
 sed '1d;$d' /tmp/default.js > /tmp/default.json
-  
+
 # Now push it to the update URL
 curl --noproxy localhost -X POST -H "Accept: application/json" -d @/tmp/default.json http://localhost:8080/jenkins/updateCenter/byId/default/postBack --verbose
 
+# Jenkinsのプロキシ設定
 if [ x"$http_proxy" != x"" ]
 then
   # set proxy. sorry IPv4 only and user:pass not supported...
   proxyuser=`echo $http_proxy | sed -n 's/.*:\/\/\([a-zA-Z0-9]*\):.*/\1/p'`
   proxypass=`echo $http_proxy | sed -n 's/.*:\/\/[a-zA-Z0-9]*:\([a-zA-Z0-9:]*\)\@.*/\1/p'`
-  echo 
+  echo
   echo proxyuser=$proxyuser
   echo proxypass=$proxypass
 
@@ -79,9 +53,7 @@ then
   #service jenkins restart
 fi
 
-# jenkinsプラグインファイルをカレントディレクトリにダウンロードしてから
-# インストールしているようなので、redmineがインストールできない。
-# 暫定回避策としてtmpディレクトリ内に移動してから処理する。
+# プラグインインストール
 mkdir tmp
 pushd tmp
 RET=-1
@@ -92,7 +64,6 @@ do
   RET=$?
 done
 
-java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ install-plugin reverse-proxy-auth-plugin
 java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ install-plugin persona
 java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ install-plugin git
 java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ install-plugin redmine
@@ -102,10 +73,16 @@ rm -rf tmp
 
 sleep 10
 
+# persona-hudmi取得
+if [ ! -d /var/lib/jenkins/persona ]
+then
+  git clone https://github.com/okamototk/jenkins-persona-hudmi /var/lib/jenkins/persona
+fi
+
 if [ ! -f /var/lib/jenkins/config.xml ]
 then
   cp jenkins/config.xml /var/lib/jenkins/config.xml
 fi
 
-java -jar $INSTALL_DIR/bin/jenkins-cli.jar -s http://localhost:8080/jenkins/ restart
-
+chown -R jenkins:jenkins /var/lib/jenkins/
+service jenkins restart
