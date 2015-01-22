@@ -8,8 +8,8 @@ mysql-client
 mysql-server
 ruby1.9.3
 imagemagick
-#libmagickcore-dev
-#libmagickwand-dev
+libmagickcore-dev
+libmagickwand-dev
 #rubygems
 #librmagick-ruby1.8
 #rake
