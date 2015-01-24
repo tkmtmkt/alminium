@@ -3,7 +3,7 @@
 if [ ! -f /etc/httpd/Apache/Authn/Redmine.pm ]
 then
   mkdir -p /etc/httpd/Apache/Authn
-  cp etc/Redmine.pm /etc/httpd/Apache/Authn/
+  cp $INSTALL_DIR/extra/svn/Redmine.pm /etc/httpd/Apache/Authn/
 fi
 
 if [ "SSL" = "Y" ]; then REPLACE_SSL="#SSL# *"; fi

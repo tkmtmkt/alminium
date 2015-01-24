@@ -3,7 +3,8 @@
 if [ ! -f /etc/perl/Apache/Authn/Redmine.pm ]
 then
   mkdir -p /etc/perl/Apache/Authn
-  cat  etc/Redmine.pm |sed 's/Digest::SHA1/Digest::SHA/g' > /etc/perl/Apache/Authn/Redmine.pm
+#  cat  $INSTALL_DIR/extra/svn/Redmine.pm |sed 's/Digest::SHA1/Digest::SHA/g' > /etc/perl/Apache/Authn/Redmine.pm
+  cp $INSTALL_DIR/extra/svn/Redmine.pm /etc/perl/Apache/Authn/Redmine.pm
 fi
 
 if [ "SSL" = "Y" ]; then REPLACE_SSL="#SSL# *"; fi
