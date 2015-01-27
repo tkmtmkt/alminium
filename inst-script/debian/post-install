@@ -29,6 +29,8 @@ a2enmod proxy_http
 a2enmod headers
 a2enmod rewrite
 a2enmod passenger
+a2enmod perl
+a2enmod wsgi
 a2ensite alminium.conf
 
 service apache2 stop

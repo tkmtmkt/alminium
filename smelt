@@ -146,7 +146,7 @@ echo ""
 echo ""
 fi
 
-source inst-script/config-email.sh
+# source inst-script/config-email.sh
 
 if [ -e jenkins/setup/$OS/install.sh -a "$ENABLE_JENKINS" = "" ]
 then
@@ -295,10 +295,10 @@ $CPCMD redmine/hooks $INSTALL_DIR/
 chown -R $APACHE_USER:$APACHE_USER $INSTALL_DIR
 
 # setup for email
-if [ "$SMTPSERVER" != "" ]
-then
-  source inst-script/gen-email-config.sh
-fi
+#if [ "$SMTPSERVER" != "" ]
+#then
+#  source inst-script/gen-email-config.sh
+#fi
 
 # setup for jenkins
 if [ "$ENABLE_JENKINS" = "y" ]
