@@ -31,6 +31,7 @@ a2enmod rewrite
 a2enmod passenger
 a2enmod perl
 a2enmod wsgi
+a2enmod cgi
 a2ensite alminium.conf
 
 service apache2 stop
