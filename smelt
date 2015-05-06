@@ -25,7 +25,7 @@ then
   exit
 fi
 
-if [ "$USER" != 'root' ]
+if [ `id -u` -ne 0 ]
 then
     echo "ALMiniumのインストールはルートユーザで行う必要があります。"
     echo "rootユーザもしくはsudoで実行してください。"
